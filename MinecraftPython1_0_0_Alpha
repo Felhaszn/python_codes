@@ -1,0 +1,49 @@
+from ursina import *
+from ursina.prefabs.first_person_controller import FirstPersonController
+import random
+from perlin_noise import *
+from numpy import floor
+from numpy import abs
+
+noise = PerlinNoise(octaves=2,seed=random.randint(10000, 99999))
+amp = 60
+freq = 100
+
+app = Ursina()
+
+window.fps_counter.enabled = True
+window.exit_button.visible = False
+
+class Voxel(Button):
+    def __init__(self, position=(0,0,0)):
+        super().__init__(
+            parent = scene,
+            position = position,
+            model = 'cube',
+            origin_y = .5,
+            color = color.white,
+            texture = 'stone.jpg'
+        )
+
+    def input(self, key):
+        if key == 'escape':
+            quit()
+        if self.hovered:
+            if key == 'right mouse down':
+                voxel = Voxel(position=self.position + mouse.normal)
+            if key == 'left mouse down':
+                destroy(self)
+
+
+for z in range(64):
+    for y in range(2):
+        for x in range(64):
+            voxel = Voxel(position=(x,y-(floor((noise([x/freq,z/freq]))*amp)),z))
+
+subject = FirstPersonController(gravity=.9, jump_height=1.2)
+subject.cursor.visible = False
+subject.gravity = 0.5
+subject.x = subject.z = 5
+subject.y = 12
+
+app.run()
